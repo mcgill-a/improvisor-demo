@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% set active_page = 'controller' %}
+{% block content %}
+<div class="container">
+    <h1>Controller</h1>
+    <div title="Toggle Speech Recognition" class="controls">
+        <button class="control btn btn-success btn-lg" id="start">Start Listening</button>
+        <button class="control btn btn-danger btn-lg hidden" id="stop">Stop Listening</button>
+
+    </div>
+    <br />
+    <div class="display">
+        <div title="Tags" class="tags">
+            {% for tag in tags %}
+            <p>{{tag}}</p>
+            {% endfor %}
+        </div>
+        <br />
+
+        <textarea title="Transcript" id="display-transcript" readonly></textarea>
+        <br />
+        <ul title="Matched Tags" id="display-tags">
+
+        </ul>
+    </div>
+</div>
+<script>
+    if (annyang) {
+        annyang.debug();
+        var tagList = [];
+
+        "{% for tag in tags %}"
+        tagList.push("{{tag}}");
+        "{% endfor %}"
+        annyang.addCallback('result', function (phrases) {
+            console.log("Speech Recognised: ", phrases[0]);
+            var phrase = phrases[0];
+            $('#display-transcript').append("- " + phrase + "\n");
+            var matched = [];
+
+            // Check if any tags were mentioned:
+            for (var i = 0; i < tagList.length; i++) {
+                // Convert both strings to lowercase then see if the phrase contains the tag
+                if (phrase.toLowerCase().includes(tagList[i].toLowerCase())) {
+                    // Append matched tag to text area
+                    matched.push(tagList[i]);
+                }
+            }
+            if (matched.length > 0) {
+                $('#display-tags').append("<li>" + matched + "</li>");
+                console.log("Matched tags: " + matched);
+                
+                var socket = io.connect('http://127.0.0.1:5000');
+                socket.send(matched);
+
+            }
+        });
+    }
+</script>
+
+<script>
+    // NoSleep library stops device from automatically sleeping while listening
+    var noSleep = new NoSleep();
+    // Start listening button
+    $("#start").click(function () {
+        $(".control").toggleClass('hidden');
+        noSleep.enable();
+        annyang.start({
+            autoRestart: true,
+            continuous: false
+        });
+        console.log("Started listening");
+    });
+    // Stop listening button
+    $("#stop").click(function () {
+        $(".control").toggleClass('hidden');
+        noSleep.disable();
+        annyang.abort();
+        console.log("Stopped listening");
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        /*
+        var socket = io.connect('http://127.0.0.1:5000');
+        socket.on('connect', function () {
+            socket.send('Controller connected');
+        });
+        */
+    });
+</script>
+{% endblock %}
