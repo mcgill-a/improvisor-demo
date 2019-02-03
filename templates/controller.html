@@ -12,11 +12,12 @@
     <div class="display">
         <div title="Tags" class="tags">
             {% for tag in tags %}
-            <p>{{tag}}</p>
+            <a href="#" class="tag-item" data-tag="{{tag}}">
+                <p>{{tag}}</p>
+            </a>
             {% endfor %}
         </div>
         <br />
-
         <textarea title="Transcript" id="display-transcript" readonly></textarea>
         <br />
         <ul title="Matched Tags" id="display-tags">
@@ -49,7 +50,7 @@
             if (matched.length > 0) {
                 $('#display-tags').append("<li>" + matched + "</li>");
                 console.log("Matched tags: " + matched);
-                
+
                 var socket = io.connect('http://127.0.0.1:5000');
                 socket.send(matched);
 
@@ -80,14 +81,25 @@
     });
 </script>
 
+
+
 <script type="text/javascript">
     $(document).ready(function () {
-        /*
+
         var socket = io.connect('http://127.0.0.1:5000');
+
+        /*
         socket.on('connect', function () {
             socket.send('Controller connected');
         });
         */
+
+        $(".tag-item").click(function () {
+            var tag = $(this).attr('data-tag');
+            $('#display-tags').append("<li>" + tag + "</li>");
+            socket.send(tag);
+        });
+
     });
 </script>
 {% endblock %}

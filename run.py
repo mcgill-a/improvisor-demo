@@ -16,8 +16,7 @@ def handleMessage(msg):
 
 @app.route('/', methods=['GET'])
 def index():
-	tags = ['database', 'server', 'improvise', 'group project', 'image', 'youtube video']
-	return render_template('index.html', tags=tags)
+	return render_template('index.html')
 
 @app.route('/presenter', methods=['GET'])
 def presenter():
