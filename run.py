@@ -37,4 +37,4 @@ if __name__ == '__main__':
     print("- Connected: MySQL Database")
     print("--- --- --- --- --- --- ---")
     print("")
-    socketio.run(app)
+    socketio.run(app, port=8000)

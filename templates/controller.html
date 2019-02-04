@@ -51,7 +51,7 @@
                 $('#display-tags').append("<li>" + matched + "</li>");
                 console.log("Matched tags: " + matched);
 
-                var socket = io.connect('http://127.0.0.1:5000');
+                var socket = io();
                 socket.send(matched);
 
             }
@@ -86,7 +86,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
 
-        var socket = io.connect('http://127.0.0.1:5000');
+        var socket = io();
 
         /*
         socket.on('connect', function () {
