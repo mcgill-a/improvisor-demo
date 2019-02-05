@@ -6,7 +6,6 @@
     <div title="Toggle Speech Recognition" class="controls">
         <button class="control btn btn-success btn-lg" id="start">Start Listening</button>
         <button class="control btn btn-danger btn-lg hidden" id="stop">Stop Listening</button>
-
     </div>
     <br />
     <div class="display">
@@ -26,34 +25,73 @@
     </div>
 </div>
 <script>
+    function positions(source, tag) {
+        var result = [];
+        for (i = 0; i < source.length; ++i) {
+            if (source.substring(i, i + tag.length) == tag) {
+                result.push(i);
+            }
+        }
+        return result;
+    }
+
     if (annyang) {
         annyang.debug();
         var tagList = [];
 
         "{% for tag in tags %}"
-        tagList.push("{{tag}}");
+        tagList.push("{{tag}}".toLowerCase());
         "{% endfor %}"
         annyang.addCallback('result', function (phrases) {
             console.log("Speech Recognised: ", phrases[0]);
-            var phrase = phrases[0];
+            var phrase = phrases[0].toLowerCase();
             $('#display-transcript').append("- " + phrase + "\n");
             var matched = [];
 
             // Check if any tags were mentioned:
             for (var i = 0; i < tagList.length; i++) {
-                // Convert both strings to lowercase then see if the phrase contains the tag
-                if (phrase.toLowerCase().includes(tagList[i].toLowerCase())) {
-                    // Append matched tag to text area
-                    matched.push(tagList[i]);
+                var tag = {
+                    content: tagList[i],
+                    positions: [],
+                    count: 0
+                };
+
+                tag.count = phrase.split(tagList[i]).length - 1;
+                if (tag.count > 0) {
+                    tag.positions = positions(phrase, tag.content);
+                    matched.push(tag);
                 }
             }
+
+            var spoken_tags = [];
+
             if (matched.length > 0) {
-                $('#display-tags').append("<li>" + matched + "</li>");
-                console.log("Matched tags: " + matched);
+                console.log(matched);
+                for (var i = 0; i < matched.length; i++) {
+                    for (var j = 0; j < matched[i].count; j++) {
+                        var tag = {
+                            content: matched[i].content,
+                            position: matched[i].positions[j],
+                            toString: function () {
+                                return this.content;
+                            },
+                        }
+                        spoken_tags.push(tag);
+                    }
+                }
+
+                // Sort tags by the original order of the transcript
+                spoken_tags.sort(function (a, b) {
+                    return a.position - b.position;
+                });
+
+                console.log(spoken_tags);
+                var display_tags = spoken_tags.join(", ");
+
+                $('#display-tags').append("<li>" + display_tags + "</li>");
 
                 var socket = io();
-                socket.send(matched);
-
+                socket.send(display_tags);
             }
         });
     }

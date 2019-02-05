@@ -1,3 +1,5 @@
+# Database Setup Commands
+
 CREATE DATABASE IF NOT EXISTS improvisor;
 USE improvisor;
 

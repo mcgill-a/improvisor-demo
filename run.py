@@ -18,11 +18,6 @@ class Example(db.Model):
     data = db.Column('data', db.Unicode)
 
 
-examples = Example.query.all()
-for row in examples:
-    print(row.id, row.data)
-
-
 @socketio.on('message')
 def handleMessage(msg):
     print('Message: ' + str(msg))
@@ -49,9 +44,6 @@ if __name__ == '__main__':
     print("")
     print("--- --- --- --- --- --- ---")
     print("-- Improvisor Web Server --")
-    print("--- --- --- --- --- --- ---")
-    print("- Connected: SocketIO")
-    print("- Connected: MySQL Database")
     print("--- --- --- --- --- --- ---")
     print("")
     socketio.run(app, port=8000)
