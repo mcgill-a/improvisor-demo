@@ -63,6 +63,14 @@
                 }
             }
 
+            /*
+                How to get the number of times a tag was mentioned within a phrase:
+                
+                matched[i] >> {content: "database", positions: Array(2), count: 2}
+                
+                It will be useful for keeping track of tag mentions for 'frequent' list
+            */
+
             var spoken_tags = [];
 
             if (matched.length > 0) {
@@ -125,12 +133,6 @@
     $(document).ready(function () {
 
         var socket = io();
-
-        /*
-        socket.on('connect', function () {
-            socket.send('Controller connected');
-        });
-        */
 
         $(".tag-item").click(function () {
             var tag = $(this).attr('data-tag');
