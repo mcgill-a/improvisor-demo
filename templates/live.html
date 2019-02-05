@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% set active_page = 'realtime' %}
+{% block content %}
+<div class="container">
+    <h1>Live Speech Recognition</h1>
+    <div title="Toggle Speech Recognition" class="controls">
+        <button class="control btn btn-success btn-lg" id="start">Start Listening</button>
+        <button class="control btn btn-danger btn-lg hidden" id="stop">Stop Listening</button>
+    </div>
+    <br />
+    <div class="display">
+        <div title="Tags" class="tags">
+            {% for tag in tags %}
+            <a href="#" class="tag-item" data-tag="{{tag}}">
+                <p>{{tag}}</p>
+            </a>
+            {% endfor %}
+        </div>
+        <br />
+        <span class="realtime-transcript" id="artyom-redirect-output"></span>
+        <br />
+        <ul title="Matched Tags" id="display-tags">
+
+        </ul>
+    </div>
+</div>
+    
+<script>
+    var noSleep = new NoSleep();
+    const artyom = new Artyom();
+
+    var settings = {
+        continuous: true, // Don't stop never because i have https connection
+        onResult: function (text) {
+            // Show the Recognized text in the console
+            console.log("Recognized text: ", text);
+            $("#artyom-redirect-output").text(text);
+        },
+        onStart: function () {
+            console.log("Dictation started by the user");
+        },
+        onEnd: function () {
+            //alert("Dictation stopped by the user");
+            $("#artyom-redirect-output").text("");//Nothing
+        }
+    };
+
+    var UserDictation = artyom.newDictation(settings);
+
+    
+    function startArtyom() {
+        // Make sure artyom is deactvated before dictation..
+        artyom.fatality()
+        // Activate dictation object
+        UserDictation.start();
+    };
+
+    function stopArtyom() {
+        console.log("Stopped Artyom");
+        UserDictation.stop();
+    }
+
+
+    // Start listening button
+    $("#start").click(function () {
+        $(".control").toggleClass('hidden');
+        
+        noSleep.enable();
+        startArtyom();
+
+        console.log("Started listening");
+    });
+    // Stop listening button
+    $("#stop").click(function () {
+        $(".control").toggleClass('hidden');
+        
+        noSleep.disable();
+        stopArtyom();
+
+        console.log("Stopped listening");
+    });
+</script>
+{% endblock %}

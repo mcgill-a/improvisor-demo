@@ -40,6 +40,11 @@ def controller():
     return render_template('controller.html', tags=tags)
 
 
+@app.route('/live', methods=['GET'])
+def live():
+    return render_template('live.html')
+
+
 if __name__ == '__main__':
     print("")
     print("--- --- --- --- --- --- ---")
