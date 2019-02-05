@@ -13,9 +13,14 @@ socketio = SocketIO(app)
 
 
 class Example(db.Model):
-    __tablename__ = 'example'
+    __tablename__ = 'Example'
     id = db.Column('id', db.Integer, primary_key=True)
     data = db.Column('data', db.Unicode)
+
+
+examples = Example.query.all()
+for row in examples:
+    print(row.id, row.data)
 
 
 @socketio.on('message')
