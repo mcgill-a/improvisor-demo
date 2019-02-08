@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% set active_page = 'controller' %}
+{% block content %}
+<div class="container">
+    <h1>Controller</h1>
+    <div title="Toggle Speech Recognition" class="controls">
+        <button class="control btn btn-success btn-lg" id="start">Start Listening</button>
+        <button class="control btn btn-danger btn-lg hidden" id="stop">Stop Listening</button>
+    </div>
+    <br />
+    <div class="display">
+        <div title="Tags" class="tags">
+            {% for tag in tags %}
+            <a href="#" class="tag-item" data-tag="{{tag}}">
+                <p>{{tag}}</p>
+            </a>
+            {% endfor %}
+        </div>
+        <br />
+        <textarea title="Transcript" id="display-transcript" readonly></textarea>
+        <br />
+        <ul title="Matched Tags" id="display-tags">
+
+        </ul>
+    </div>
+</div>
+<script>
+    function positions(source, tag) {
+        var result = [];
+        for (i = 0; i < source.length; ++i) {
+            if (source.substring(i, i + tag.length) == tag) {
+                result.push(i);
+            }
+        }
+        return result;
+    }
+
+    if (annyang) {
+        annyang.debug();
+        var tagList = [];
+
+        "{% for tag in tags %}"
+        tagList.push("{{tag}}".toLowerCase());
+        "{% endfor %}"
+        annyang.addCallback('result', function (phrases) {
+            console.log("Speech Recognised: ", phrases[0]);
+            var phrase = phrases[0].toLowerCase();
+            $('#display-transcript').append("- " + phrase + "\n");
+            var matched = [];
+
+            // Check if any tags were mentioned:
+            for (var i = 0; i < tagList.length; i++) {
+                var tag = {
+                    content: tagList[i],
+                    positions: [],
+                    count: 0
+                };
+
+                tag.count = phrase.split(tagList[i]).length - 1;
+                if (tag.count > 0) {
+                    tag.positions = positions(phrase, tag.content);
+                    matched.push(tag);
+                }
+            }
+
+            /*
+                How to get the number of times a tag was mentioned within a phrase:
+                
+                matched[i] >> {content: "database", positions: Array(2), count: 2}
+                
+                It will be useful for keeping track of tag mentions for 'frequent' list
+            */
+
+            var spoken_tags = [];
+
+            if (matched.length > 0) {
+                console.log(matched);
+                for (var i = 0; i < matched.length; i++) {
+                    for (var j = 0; j < matched[i].count; j++) {
+                        var tag = {
+                            content: matched[i].content,
+                            position: matched[i].positions[j],
+                            toString: function () {
+                                return this.content;
+                            },
+                        }
+                        spoken_tags.push(tag);
+                    }
+                }
+
+                // Sort tags by the original order of the transcript
+                spoken_tags.sort(function (a, b) {
+                    return a.position - b.position;
+                });
+
+                console.log(spoken_tags);
+                var display_tags = spoken_tags.join(", ");
+
+                $('#display-tags').append("<li>" + display_tags + "</li>");
+
+                var socket = io();
+                socket.send(display_tags);
+            }
+        });
+    }
+</script>
+
+<script>
+    // NoSleep library stops device from automatically sleeping while listening
+    var noSleep = new NoSleep();
+    // Start listening button
+    $("#start").click(function () {
+        $(".control").toggleClass('hidden');
+        noSleep.enable();
+        annyang.start({
+            autoRestart: true,
+            continuous: false
+        });
+        console.log("Started listening");
+    });
+    // Stop listening button
+    $("#stop").click(function () {
+        $(".control").toggleClass('hidden');
+        noSleep.disable();
+        annyang.abort();
+        console.log("Stopped listening");
+    });
+</script>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var socket = io();
+
+        $(".tag-item").click(function () {
+            var tag = $(this).attr('data-tag');
+            $('#display-tags').append("<li>" + tag + "</li>");
+            socket.send(tag);
+        });
+
+    });
+</script>
+{% endblock %}
