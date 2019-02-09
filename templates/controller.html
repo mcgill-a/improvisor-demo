@@ -16,18 +16,25 @@
 
 <script>
     $('.square-demo-img').each(function () {
-        var mc = new Hammer(this);
+        var swiping = new Hammer(this);
         //enable all directions
-        mc.get('swipe').set({
+        swiping.get('swipe').set({
             direction: Hammer.DIRECTION_ALL,
             threshold: 1,
             velocity: 0.1
         });
+
         var current = $(this).attr("id");
         var colour = $("#" + current).attr("data-colour");
         // listen to events...
-        mc.on("swipeup swipedown swipeleft swiperight tap press", function (ev) {
+        swiping.on("swipeup swipedown swipeleft swiperight tap press pressup", function (ev) {
             myElement.textContent = ev.type + " gesture detected.";
+            
+            // Reset element state (css class transitions)
+            $("#" + current).removeClass("element-increase");
+            $("#" + current).removeClass("element-reset");
+            
+            // Swipe up gesture
             if (ev.type == "swipeup") {
                 $("#" + current).removeClass("fadeIn");
                 $("#" + current).addClass("slideOutUp");
@@ -41,6 +48,19 @@
                     $("#" + current).removeClass("slideOutUp");
                     $("#" + current).addClass("fadeIn");
                 }, 1000);
+            }
+
+            // Hold gesture start (press)
+            if (ev.type == "press")
+            {
+                $("#" + current).addClass("element-increase");
+            }
+
+            // Hold gesture stop (pressup)
+            if (ev.type == "pressup")
+            {
+                $("#" + current).addClass("element-reset");
+                $("#" + current).removeClass("element-increase");
             }
         });
     });
